@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
 	"github.com/wcharczuk/go-chart"
+	"net/http"
 )
 
-func main() {
+func test(w http.ResponseWriter, req *http.Request) {
 	graph := chart.Chart{
 		Series: []chart.Series{
 			chart.ContinuousSeries{
@@ -19,10 +19,16 @@ func main() {
 	buffer := bytes.NewBuffer([]byte{})
 	err := graph.Render(chart.PNG, buffer)
 	if err != nil {
-		panic(err)
+		http.Error(w, err.Error(), 500)
+		return
 	}
-	ioutil.WriteFile("test.png", buffer.Bytes(), 0644)
-	if err != nil {
-		panic(err)
-	}
+
+	w.Header().Add("content-type", "image/png")
+	_, _ = w.Write(buffer.Bytes())
+	// err: ¯\_(ツ)_/¯
+}
+
+func main() {
+	http.HandleFunc("/test", test)
+	http.ListenAndServe(":12345", nil)
 }
