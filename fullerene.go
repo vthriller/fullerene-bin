@@ -85,7 +85,7 @@ func test(w http.ResponseWriter, req *http.Request) {
 	series := make([]chart.Series, 0)
 	for _, metric := range resp_json.Data.Result {
 		// TODO metric.metric
-		xvals := make([]float64, 0)
+		xvals := make([]time.Time, 0)
 		yvals := make([]float64, 0)
 		for _, xy := range metric.Values {
 			// xy is [12345., "123"] in json
@@ -97,10 +97,11 @@ func test(w http.ResponseWriter, req *http.Request) {
 				// XXX skip metric? return 502?
 				continue
 			}
-			xvals = append(xvals, x)
+			// don't care about sub-second precision, sorry
+			xvals = append(xvals, time.Unix(int64(x), 0))
 			yvals = append(yvals, yf)
 		}
-		series = append(series, chart.ContinuousSeries {
+		series = append(series, chart.TimeSeries {
 			XValues: xvals,
 			YValues: yvals,
 		})
