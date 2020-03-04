@@ -4,7 +4,12 @@ import (
 	"bytes"
 	"github.com/wcharczuk/go-chart"
 	"net/http"
+	"net/url"
 	"strconv"
+	"time"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 )
 
 func int_param(req *http.Request, key string, implicit int) (int, error) {
@@ -13,6 +18,19 @@ func int_param(req *http.Request, key string, implicit int) (int, error) {
 		return implicit, nil
 	}
 	return strconv.Atoi(value)
+}
+
+type prom_response struct {
+	Status string `json:"status"`
+	Data prom_data `json:"data"`
+}
+type prom_data struct {
+	ResType string `json:"resultType"`
+	Result []prom_metric `json:"result"`
+}
+type prom_metric struct {
+	Metric map[string]string `json:"metric"`
+	Values []interface{} `json:"values"` // should rather be (int, string)
 }
 
 func test(w http.ResponseWriter, req *http.Request) {
@@ -27,13 +45,69 @@ func test(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	resp, err := http.Get(fmt.Sprintf(
+		"http://127.0.0.1:9090/api/v1/query_range?query=%s&start=%d&end=%d&step=5",
+		url.QueryEscape("sum(rate(node_cpu{instance=\"localhost:9100\"} [5m])) by (mode)"),
+		time.Now().Add(-time.Hour).Unix(),
+		time.Now().Unix(),
+	))
+	if err != nil {
+		http.Error(w, "remote: " + err.Error(), 502)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		http.Error(w, fmt.Sprintf("remote: code %d", resp.StatusCode), 502)
+		return
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "remote: " + err.Error(), 502)
+		return
+	}
+
+	var resp_json prom_response
+	err = json.Unmarshal(body, &resp_json)
+
+	if err != nil {
+		http.Error(w, "remote: data: " + err.Error(), 502)
+		return
+	}
+	if resp_json.Status != "success" {
+		http.Error(w, fmt.Sprintf("remote: data: status %q", resp_json.Status), 502)
+		return
+	}
+	if resp_json.Data.ResType != "matrix" {
+		http.Error(w, fmt.Sprintf("remote: data: unexpected resultType %q", resp_json.Data.ResType), 502)
+		return
+	}
+
+	series := make([]chart.Series, 0)
+	for _, metric := range resp_json.Data.Result {
+		// TODO metric.metric
+		xvals := make([]float64, 0)
+		yvals := make([]float64, 0)
+		for _, xy := range metric.Values {
+			// xy is [12345., "123"] in json
+			xy := xy.([]interface{})
+			x := xy[0].(float64)
+			y := xy[1].(string)
+			yf, err := strconv.ParseFloat(y, 64)
+			if err != nil {
+				// XXX skip metric? return 502?
+				continue
+			}
+			xvals = append(xvals, x)
+			yvals = append(yvals, yf)
+		}
+		series = append(series, chart.ContinuousSeries {
+			XValues: xvals,
+			YValues: yvals,
+		})
+	}
+
 	graph := chart.Chart{
-		Series: []chart.Series{
-			chart.ContinuousSeries{
-				XValues: []float64{1, 2, 3, 4},
-				YValues: []float64{3.14159, 2.71828, -1, 0},
-			},
-		},
+		Series: series,
 		Width: width,
 		Height: height,
 	}
