@@ -119,7 +119,12 @@ func test(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	w.Header().Add("content-type", "image/png")
+	hdr := w.Header()
+	hdr.Add("content-type", "image/png")
+	hdr.Add("cache-control", "no-cache, no-store, must-revalidate")
+	hdr.Add("pragma", "no-cache")
+	hdr.Add("expires", "0")
+
 	_, _ = w.Write(buffer.Bytes())
 	// err: ¯\_(ツ)_/¯
 }
