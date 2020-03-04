@@ -84,7 +84,16 @@ func test(w http.ResponseWriter, req *http.Request) {
 
 	series := make([]chart.Series, 0)
 	for _, metric := range resp_json.Data.Result {
-		// TODO metric.metric
+		name, exists := metric.Metric["__name__"]
+		if !exists {
+			name = ""
+		}
+		name += "{"
+		for k, v := range metric.Metric {
+			if k == "__name__" { continue }
+			name += fmt.Sprintf("%s=%q", k, v)
+		}
+		name += "}"
 		xvals := make([]time.Time, 0)
 		yvals := make([]float64, 0)
 		for _, xy := range metric.Values {
@@ -102,6 +111,7 @@ func test(w http.ResponseWriter, req *http.Request) {
 			yvals = append(yvals, yf)
 		}
 		series = append(series, chart.TimeSeries {
+			Name: name,
 			XValues: xvals,
 			YValues: yvals,
 		})
@@ -111,6 +121,9 @@ func test(w http.ResponseWriter, req *http.Request) {
 		Series: series,
 		Width: width,
 		Height: height,
+	}
+	graph.Elements = []chart.Renderable{
+		chart.Legend(&graph),
 	}
 
 	buffer := bytes.NewBuffer([]byte{})
