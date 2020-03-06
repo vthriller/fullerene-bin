@@ -23,11 +23,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 	root.fill(&WHITE)?;
 
 	let mut chart = ChartBuilder::on(&root)
+		.set_label_area_size(LabelAreaPosition::Left, 40)
+		.set_label_area_size(LabelAreaPosition::Bottom, 30)
 		.build_ranged(
 			iter_to_range(data.iter().map(|(x, _)| *x)),
 			iter_to_range(data.iter().map(|(_, y)| *y)),
 		)?;
 
+	chart.configure_mesh().draw()?;
 	chart.draw_series(LineSeries::new(data, &RED))?;
 
 	Ok(())
