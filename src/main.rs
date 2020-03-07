@@ -71,10 +71,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 	// TODO labels
 	let data: Vec<Vec<(f64, f64)>> = data.into_iter()
 		.map(|metric| {
-	metric.values.into_iter()
-		// XXX unwrap(): we expect valid floats in strings (including "NaN"s)
-		.map(|(k, v)| (k, v.parse().unwrap()))
-		.collect()
+			metric.values.into_iter()
+				// XXX unwrap(): we expect valid floats in strings (including "NaN"s)
+				.map(|(k, v)| (k, v.parse().unwrap()))
+				.collect()
 		})
 		.collect();
 
@@ -92,7 +92,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 	chart.configure_mesh().draw()?;
 
 	for data in data {
-	chart.draw_series(LineSeries::new(data, &RED))?;
+		chart.draw_series(LineSeries::new(data, &RED))?;
 	}
 
 	Ok(())
