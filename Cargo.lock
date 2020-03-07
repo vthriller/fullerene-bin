@@ -367,6 +367,7 @@ name = "fullerene"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "hsluv",
  "itertools",
  "plotters",
  "reqwest",
@@ -468,6 +469,12 @@ checksum = "1010591b26bbfe835e9faeabeb11866061cc7dcebffd56ad7d0942d0e61aefd8"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "hsluv"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5de5410b651df185f74619635f1e046217ede92643621bbb13499c6b5327b73c"
 
 [[package]]
 name = "http"
