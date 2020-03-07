@@ -3,6 +3,7 @@ mod prom;
 mod render;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-	let _ = render::render();
+	let data = prom::fetch()?;
+	let _ = render::render(data);
 	Ok(())
 }
