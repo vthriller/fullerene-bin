@@ -83,10 +83,12 @@ fn date_format(range: &Range<DateTime<Utc>>, width: usize) -> String {
 	fmt.join("")
 }
 
-pub fn render() -> Result<(), Box<dyn std::error::Error>> {
+pub fn render() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
 	let data = prom::fetch()?;
 
-	let root = BitMapBackend::new("test.png", (800, 480)).into_drawing_area();
+	let mut buf = vec![0; (800 * 480 * 3) as usize];
+	{
+	let root = BitMapBackend::with_buffer(&mut buf, (800, 480)).into_drawing_area();
 	root.fill(&WHITE)?;
 
 	let date_range = iter_to_range(data.iter().flatten().map(|(x, _)| *x), Duration::minutes(1), Utc::now() .. Utc::now());
@@ -107,6 +109,7 @@ pub fn render() -> Result<(), Box<dyn std::error::Error>> {
 	for (data, color) in data.into_iter().zip(colors()) {
 		chart.draw_series(LineSeries::new(data, &color))?;
 	}
+	}
 
-	Ok(())
+	Ok(buf)
 }
