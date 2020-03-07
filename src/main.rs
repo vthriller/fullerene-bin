@@ -6,6 +6,9 @@ use std::net::SocketAddr;
 use hyper::{Body, Request, Response, Server};
 use hyper::service::{make_service_fn, service_fn};
 
+use chrono::prelude::*;
+use chrono::Duration;
+
 use image::{
 	ColorType,
 	png::PNGEncoder,
@@ -14,7 +17,11 @@ use image::{
 type Error = Box<dyn std::error::Error + Sync + Send>;
 
 async fn handle(_req: Request<Body>) -> Result<Response<Body>, Error> {
-	let data = prom::fetch().await?;
+	let now = Utc::now();
+	let data = prom::fetch(
+		now - Duration::hours(1),
+		now,
+	).await?;
 	let img = render::render(data)?;
 
 	let mut png = vec![];

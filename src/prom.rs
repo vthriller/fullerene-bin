@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use reqwest::Client;
 use chrono::prelude::*;
-use chrono::Duration;
 use serde::Deserialize;
 
 #[allow(non_camel_case_types, non_snake_case, dead_code)]
@@ -44,15 +43,13 @@ quick_error! {
 	}
 }
 
-pub async fn fetch() -> Result<Vec<Vec<(DateTime<Utc>, f64)>>, Error> {
-	let now = Utc::now();
-
+pub async fn fetch(start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Vec<Vec<(DateTime<Utc>, f64)>>, Error> {
 	let client = Client::new();
 	let resp = client.get("http://127.0.0.1:9090/api/v1/query_range")
 		.query(&[
 			("query", "sum(rate(node_cpu{instance=\"localhost:9100\"} [5m])) by (mode)"),
-			("start", &format!("{}", (now - Duration::hours(1)).timestamp())),
-			("end", &format!("{}", now.timestamp())),
+			("start", &format!("{}", start.timestamp())),
+			("end", &format!("{}", end.timestamp())),
 			("step", "5"),
 		])
 		.send()
