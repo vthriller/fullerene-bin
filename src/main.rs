@@ -9,7 +9,7 @@ use hyper::service::{make_service_fn, service_fn};
 type Error = Box<dyn std::error::Error + Sync + Send>;
 
 async fn handle(_req: Request<Body>) -> Result<Response<Body>, Error> {
-	let data = prom::fetch()?;
+	let data = prom::fetch().await?;
 	let img = render::render(data)?;
 
 	let resp = Response::builder()

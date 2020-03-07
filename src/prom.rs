@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use reqwest::blocking::Client;
+use reqwest::Client;
 use chrono::prelude::*;
 use chrono::Duration;
 use serde::Deserialize;
@@ -44,7 +44,7 @@ quick_error! {
 	}
 }
 
-pub fn fetch() -> Result<Vec<Vec<(DateTime<Utc>, f64)>>, Error> {
+pub async fn fetch() -> Result<Vec<Vec<(DateTime<Utc>, f64)>>, Error> {
 	let now = Utc::now();
 
 	let client = Client::new();
@@ -55,8 +55,10 @@ pub fn fetch() -> Result<Vec<Vec<(DateTime<Utc>, f64)>>, Error> {
 			("end", &format!("{}", now.timestamp())),
 			("step", "5"),
 		])
-		.send()?
-        .json::<PromQueryRangeStatus>()?;
+		.send()
+		.await?
+        .json::<PromQueryRangeStatus>()
+		.await?;
 
 	let data = match resp {
 		PromQueryRangeStatus::success { data } => match data {
