@@ -78,7 +78,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		})
 		.collect();
 
-	for data in data {
 	let root = BitMapBackend::new("test.png", (800, 480)).into_drawing_area();
 	root.fill(&WHITE)?;
 
@@ -86,16 +85,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.set_label_area_size(LabelAreaPosition::Left, 40)
 		.set_label_area_size(LabelAreaPosition::Bottom, 30)
 		.build_ranged(
-			iter_to_range(data.iter().map(|(x, _)| *x)),
-			iter_to_range(data.iter().map(|(_, y)| *y)),
+			iter_to_range(data.iter().flatten().map(|(x, _)| *x)),
+			iter_to_range(data.iter().flatten().map(|(_, y)| *y)),
 		)?;
 
 	chart.configure_mesh().draw()?;
-	chart.draw_series(LineSeries::new(data, &RED))?;
 
-	return Ok(())
+	for data in data {
+	chart.draw_series(LineSeries::new(data, &RED))?;
 	}
 
-	// XXX no time series
 	Ok(())
 }
