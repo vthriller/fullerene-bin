@@ -22,14 +22,17 @@ where
 
 // Generates colors using perceptually uniform color space (HSLuv in this case)
 fn colors() -> impl Iterator<Item = RGBColor> {
-	(0..5).map(|i| {
-		let (r, g, b) = hsluv_to_rgb(((i*60) as f64, 80., 70.));
+	vec![65., 50., 80.].into_iter().map(|j| {
+	(0..5).map(move |i| {
+		let (r, g, b) = hsluv_to_rgb(((i*60) as f64, 80., j));
 		RGBColor(
 			(r * 255.) as u8,
 			(g * 255.) as u8,
 			(b * 255.) as u8,
 		)
 	})
+	})
+	.flatten()
 	.cycle()
 }
 
