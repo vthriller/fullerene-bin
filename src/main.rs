@@ -6,6 +6,8 @@ use hsluv::hsluv_to_rgb;
 
 use itertools::Itertools;
 use std::ops::Range;
+use chrono::prelude::Utc;
+use chrono::Duration;
 
 fn iter_to_range<T, E, I>(elems: I, epsilon: E, empty: Range<T>) -> Range<T>
 where
@@ -44,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.set_label_area_size(LabelAreaPosition::Left, 40)
 		.set_label_area_size(LabelAreaPosition::Bottom, 30)
 		.build_ranged(
-			iter_to_range(data.iter().flatten().map(|(x, _)| *x), 0.5, 0. .. 1.),
+			iter_to_range(data.iter().flatten().map(|(x, _)| *x), Duration::minutes(1), Utc::now() .. Utc::now()),
 			iter_to_range(data.iter().flatten().map(|(_, y)| *y), 0.5, 0. .. 1.),
 		)?;
 

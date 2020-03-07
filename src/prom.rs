@@ -44,7 +44,7 @@ quick_error! {
 	}
 }
 
-pub fn fetch() -> Result<Vec<Vec<(f64, f64)>>, Error> {
+pub fn fetch() -> Result<Vec<Vec<(DateTime<Utc>, f64)>>, Error> {
 	let now = Utc::now();
 
 	let client = Client::new();
@@ -71,8 +71,12 @@ pub fn fetch() -> Result<Vec<Vec<(f64, f64)>>, Error> {
 	Ok(data.into_iter()
 		.map(|metric| {
 			metric.values.into_iter()
-				// XXX unwrap(): we expect valid floats in strings (including "NaN"s)
-				.map(|(k, v)| (k, v.parse().unwrap()))
+				.map(|(k, v)| (
+					// don't care about sub-second precision, sorry
+					Utc.timestamp(k as i64, 0),
+					// XXX unwrap(): we expect valid floats in strings (including "NaN"s)
+					v.parse().unwrap()
+				))
 				.collect()
 		})
 		.collect())
