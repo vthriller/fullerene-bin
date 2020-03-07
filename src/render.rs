@@ -25,7 +25,11 @@ fn colors() -> impl Iterator<Item = RGBColor> {
 	vec![0., 20., 40.].into_iter().map(|hue_offset| {
 		vec![65., 50., 80.].into_iter().map(move |lightness| {
 			(0..5).map(move |hue| {
-				let (r, g, b) = hsluv_to_rgb(((hue*60) as f64 + hue_offset, 80., lightness));
+				let (r, g, b) = hsluv_to_rgb((
+					(hue*60) as f64 + hue_offset,
+					80.,
+					lightness,
+				));
 				RGBColor(
 					(r * 255.) as u8,
 					(g * 255.) as u8,
