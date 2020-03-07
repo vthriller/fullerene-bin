@@ -81,7 +81,7 @@ fn date_format(range: &Range<DateTime<Utc>>, width: usize) -> String {
 	fmt.join("")
 }
 
-pub fn render(data: Vec<Vec<(DateTime<Utc>, f64)>>) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+pub fn render(data: Vec<Vec<(DateTime<Utc>, f64)>>) -> Result<Vec<u8>, DrawingAreaErrorKind<impl std::error::Error>> {
 	let mut buf = vec![0; (800 * 480 * 3) as usize];
 	{
 		let root = BitMapBackend::with_buffer(&mut buf, (800, 480)).into_drawing_area();
