@@ -70,7 +70,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 	for metric in data {
 	let data: Vec<(f64, f64)> = metric.values.into_iter()
-		.filter_map(|(k, v)| v.parse().ok().map(|v| (k, v)))
+		// XXX unwrap(): we expect valid floats in strings (including "NaN"s)
+		.map(|(k, v)| (k, v.parse().unwrap()))
 		.collect();
 
 	let root = BitMapBackend::new("test.png", (800, 480)).into_drawing_area();
