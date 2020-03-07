@@ -88,27 +88,27 @@ pub fn render() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
 
 	let mut buf = vec![0; (800 * 480 * 3) as usize];
 	{
-	let root = BitMapBackend::with_buffer(&mut buf, (800, 480)).into_drawing_area();
-	root.fill(&WHITE)?;
+		let root = BitMapBackend::with_buffer(&mut buf, (800, 480)).into_drawing_area();
+		root.fill(&WHITE)?;
 
-	let date_range = iter_to_range(data.iter().flatten().map(|(x, _)| *x), Duration::minutes(1), Utc::now() .. Utc::now());
-	let xfmt = date_format(&date_range, 800);
+		let date_range = iter_to_range(data.iter().flatten().map(|(x, _)| *x), Duration::minutes(1), Utc::now() .. Utc::now());
+		let xfmt = date_format(&date_range, 800);
 
-	let mut chart = ChartBuilder::on(&root)
-		.set_label_area_size(LabelAreaPosition::Left, 40)
-		.set_label_area_size(LabelAreaPosition::Bottom, 30)
-		.build_ranged(
-			date_range,
-			iter_to_range(data.iter().flatten().map(|(_, y)| *y), 0.5, 0. .. 1.),
-		)?;
+		let mut chart = ChartBuilder::on(&root)
+			.set_label_area_size(LabelAreaPosition::Left, 40)
+			.set_label_area_size(LabelAreaPosition::Bottom, 30)
+			.build_ranged(
+				date_range,
+				iter_to_range(data.iter().flatten().map(|(_, y)| *y), 0.5, 0. .. 1.),
+			)?;
 
-	chart.configure_mesh()
-		.x_label_formatter(&|x: &DateTime<Utc>| x.format(&xfmt).to_string())
-		.draw()?;
+		chart.configure_mesh()
+			.x_label_formatter(&|x: &DateTime<Utc>| x.format(&xfmt).to_string())
+			.draw()?;
 
-	for (data, color) in data.into_iter().zip(colors()) {
-		chart.draw_series(LineSeries::new(data, &color))?;
-	}
+		for (data, color) in data.into_iter().zip(colors()) {
+			chart.draw_series(LineSeries::new(data, &color))?;
+		}
 	}
 
 	Ok(buf)
