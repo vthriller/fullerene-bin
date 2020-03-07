@@ -7,7 +7,12 @@ use hsluv::hsluv_to_rgb;
 use itertools::Itertools;
 use std::ops::Range;
 
-fn iter_to_range<I: Iterator<Item = f64>>(elems: I, epsilon: f64, empty: Range<f64>) -> Range<f64> {
+fn iter_to_range<T, E, I>(elems: I, epsilon: E, empty: Range<T>) -> Range<T>
+where
+	T: PartialOrd + std::ops::Sub<E, Output = T> + std::ops::Add<E, Output = T> + Copy,
+	E: Copy,
+	I: Iterator<Item = T>,
+{
 	use itertools::MinMaxResult::*;
 	match elems.minmax() {
 		NoElements => empty,
