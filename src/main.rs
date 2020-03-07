@@ -41,7 +41,7 @@ fn date_format(range: &Range<DateTime<Utc>>, width: usize) -> String {
 	enum Unit { S, Mi, H, D, Mo, Y }
 	use Unit::*;
 
-	let wide = match (range.start, range.end) {
+	let mut wide = match (range.start, range.end) {
 		// do we span multiple ${time_period}s?
 		(a, b) if a.year()   != b.year()   => Y,
 		(a, b) if a.month()  != b.month()  => Mo,
@@ -53,12 +53,17 @@ fn date_format(range: &Range<DateTime<Utc>>, width: usize) -> String {
 	};
 	// how much time passes between two adjacent pixels?
 	let pitch = (range.end - range.start).num_seconds() / width as i64;
-	let narrow = match pitch {
+	let mut narrow = match pitch {
 		p if p >= 60 * 60 * 24 => D,
 		p if p >= 60 * 60 => H,
 		p if p >= 60 => Mi,
 		_ => S,
 	};
+
+	// "31 23:59" makes little sense, expand to "12-31 23:59"
+	if wide == D { wide = Mo; }
+	// ditto, "12-31 23" → "12-31 23:59"
+	if narrow == H { narrow = Mi; }
 
 	// XXX what if range covers, say, multiple hours (less than a day), but pitch is measured in days?
 	// is that even possible?
