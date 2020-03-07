@@ -7,11 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-plotters = "0.2"
+plotters = { version = "0.2", default_features = false, features = ["bitmap", "line_series", "chrono"] }
 image = { version = "0.22", default_features = false, features = ["png_codec"] }
 itertools = "0.8"
 hyper = "0.13"
-tokio = { version = "0.2", features = ["full"] }
+tokio = { version = "0.2", features = ["macros"] }
 reqwest = { version = "0.10", features = ["json"] }
 chrono = "0.4"
 serde = { version = "1.0", features = ["derive"] }
