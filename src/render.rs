@@ -4,7 +4,6 @@ use hsluv::hsluv_to_rgb;
 use itertools::Itertools;
 use std::ops::Range;
 use chrono::prelude::*;
-use chrono::Duration;
 
 fn iter_to_range<T, E, I>(elems: I, epsilon: E, empty: Range<T>) -> Range<T>
 where
@@ -91,13 +90,12 @@ fn date_format(range: &Range<DateTime<Utc>>, width: usize) -> String {
 	fmt.join("")
 }
 
-pub fn render(data: Vec<Vec<(DateTime<Utc>, f64)>>) -> Result<Vec<u8>, DrawingAreaErrorKind<impl std::error::Error>> {
+pub fn render(data: Vec<Vec<(DateTime<Utc>, f64)>>, date_range: Range<DateTime<Utc>>) -> Result<Vec<u8>, DrawingAreaErrorKind<impl std::error::Error>> {
 	let mut buf = vec![0; (800 * 480 * 3) as usize];
 	{
 		let root = BitMapBackend::with_buffer(&mut buf, (800, 480)).into_drawing_area();
 		root.fill(&WHITE)?;
 
-		let date_range = iter_to_range(data.iter().flatten().map(|(x, _)| *x), Duration::minutes(1), Utc::now() .. Utc::now());
 		let xfmt = date_format(&date_range, 800);
 
 		let mut chart = ChartBuilder::on(&root)

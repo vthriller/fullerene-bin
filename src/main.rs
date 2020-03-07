@@ -22,7 +22,10 @@ async fn handle(_req: Request<Body>) -> Result<Response<Body>, Error> {
 		now - Duration::hours(1),
 		now,
 	).await?;
-	let img = render::render(data)?;
+	let img = render::render(
+		data,
+		now - Duration::hours(1) .. now,
+	)?;
 
 	let mut png = vec![];
 	PNGEncoder::new(&mut png)
