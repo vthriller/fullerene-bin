@@ -7,11 +7,11 @@ use hsluv::hsluv_to_rgb;
 use itertools::Itertools;
 use std::ops::Range;
 
-fn iter_to_range<I: Iterator<Item = f64>>(i: I) -> Range<f64> {
+fn iter_to_range<I: Iterator<Item = f64>>(elems: I, epsilon: f64, empty: Range<f64>) -> Range<f64> {
 	use itertools::MinMaxResult::*;
-	match i.minmax() {
-		NoElements => 0. .. 1.,
-		OneElement(a) => a - 0.5 .. a + 0.5,
+	match elems.minmax() {
+		NoElements => empty,
+		OneElement(a) => a - epsilon .. a + epsilon,
 		MinMax(a, b) => a .. b,
 	}
 }
@@ -39,8 +39,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.set_label_area_size(LabelAreaPosition::Left, 40)
 		.set_label_area_size(LabelAreaPosition::Bottom, 30)
 		.build_ranged(
-			iter_to_range(data.iter().flatten().map(|(x, _)| *x)),
-			iter_to_range(data.iter().flatten().map(|(_, y)| *y)),
+			iter_to_range(data.iter().flatten().map(|(x, _)| *x), 0.5, 0. .. 1.),
+			iter_to_range(data.iter().flatten().map(|(_, y)| *y), 0.5, 0. .. 1.),
 		)?;
 
 	chart.configure_mesh().draw()?;
