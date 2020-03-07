@@ -68,12 +68,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 		},
 	};
 
-	for metric in data {
-	let data: Vec<(f64, f64)> = metric.values.into_iter()
+	// TODO labels
+	let data: Vec<Vec<(f64, f64)>> = data.into_iter()
+		.map(|metric| {
+	metric.values.into_iter()
 		// XXX unwrap(): we expect valid floats in strings (including "NaN"s)
 		.map(|(k, v)| (k, v.parse().unwrap()))
+		.collect()
+		})
 		.collect();
 
+	for data in data {
 	let root = BitMapBackend::new("test.png", (800, 480)).into_drawing_area();
 	root.fill(&WHITE)?;
 
