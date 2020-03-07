@@ -6,16 +6,28 @@ use std::net::SocketAddr;
 use hyper::{Body, Request, Response, Server};
 use hyper::service::{make_service_fn, service_fn};
 
+use image::{
+	ColorType,
+	png::PNGEncoder,
+};
+
 type Error = Box<dyn std::error::Error + Sync + Send>;
 
 async fn handle(_req: Request<Body>) -> Result<Response<Body>, Error> {
 	let data = prom::fetch().await?;
 	let img = render::render(data)?;
 
+	let mut png = vec![];
+	PNGEncoder::new(&mut png)
+		.encode(
+			&img, 800, 480,
+			ColorType::RGB(8),
+		)?;
+
 	let resp = Response::builder()
 		.status(200)
 		.header("Content-Type", "image/png")
-		.body(Body::from(img))?;
+		.body(Body::from(png))?;
 
 	Ok(resp)
 }

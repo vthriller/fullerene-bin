@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 plotters = "0.2"
+image = "0.22"
 itertools = "0.8"
 hyper = "0.13"
 tokio = { version = "0.2", features = ["full"] }
