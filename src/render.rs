@@ -42,7 +42,7 @@ fn colors() -> impl Iterator<Item = RGBColor> {
 	.cycle()
 }
 
-fn date_format(range: &Range<DateTime<Utc>>, width: usize) -> String {
+fn date_format(range: &Range<DateTime<Utc>>, width: u32) -> String {
 	#[derive(Clone, Copy, PartialEq, PartialOrd)]
 	enum Unit { S, Mi, H, D, Mo, Y }
 	use Unit::*;
@@ -90,13 +90,13 @@ fn date_format(range: &Range<DateTime<Utc>>, width: usize) -> String {
 	fmt.join("")
 }
 
-pub fn render(data: Vec<Vec<(DateTime<Utc>, f64)>>, date_range: Range<DateTime<Utc>>) -> Result<Vec<u8>, DrawingAreaErrorKind<impl std::error::Error>> {
-	let mut buf = vec![0; (800 * 480 * 3) as usize];
+pub fn render(data: Vec<Vec<(DateTime<Utc>, f64)>>, date_range: Range<DateTime<Utc>>, w: u32, h: u32) -> Result<Vec<u8>, DrawingAreaErrorKind<impl std::error::Error>> {
+	let mut buf = vec![0; (w * h * 3) as usize];
 	{
-		let root = BitMapBackend::with_buffer(&mut buf, (800, 480)).into_drawing_area();
+		let root = BitMapBackend::with_buffer(&mut buf, (w, h)).into_drawing_area();
 		root.fill(&WHITE)?;
 
-		let xfmt = date_format(&date_range, 800);
+		let xfmt = date_format(&date_range, w);
 
 		let mut chart = ChartBuilder::on(&root)
 			.set_label_area_size(LabelAreaPosition::Left, 40)

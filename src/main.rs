@@ -25,6 +25,7 @@ async fn handle(_req: Request<Body>) -> Result<Response<Body>, Error> {
 	let img = render::render(
 		data,
 		now - Duration::hours(1) .. now,
+		800, 480,
 	)?;
 
 	let mut png = vec![];
