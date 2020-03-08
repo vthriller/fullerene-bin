@@ -43,7 +43,12 @@ quick_error! {
 	}
 }
 
-pub async fn fetch(start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Vec<Vec<(DateTime<Utc>, f64)>>, Error> {
+pub struct Metric {
+	pub labels: HashMap<String, String>,
+	pub data: Vec<(DateTime<Utc>, f64)>,
+}
+
+pub async fn fetch(start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Vec<Metric>, Error> {
 	let client = Client::new();
 	let resp = client.get("http://127.0.0.1:9090/api/v1/query_range")
 		.query(&[
@@ -66,10 +71,11 @@ pub async fn fetch(start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Vec<Vec<(
 		},
 	};
 
-	// TODO labels
 	Ok(data.into_iter()
 		.map(|metric| {
-			metric.values.into_iter()
+			Metric {
+				labels: metric.metric,
+			data: metric.values.into_iter()
 				.map(|(k, v)| (
 					// don't care about sub-second precision, sorry
 					Utc.timestamp(k as i64, 0),
@@ -77,6 +83,7 @@ pub async fn fetch(start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Vec<Vec<(
 					v.parse().unwrap()
 				))
 				.collect()
+			}
 		})
 		.collect())
 }

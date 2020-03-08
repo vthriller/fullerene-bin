@@ -5,6 +5,8 @@ use itertools::Itertools;
 use std::ops::Range;
 use chrono::prelude::*;
 
+use crate::prom::Metric;
+
 fn iter_to_range<T, E, I>(elems: I, epsilon: E, empty: Range<T>) -> Range<T>
 where
 	T: PartialOrd + std::ops::Sub<E, Output = T> + std::ops::Add<E, Output = T> + Copy,
@@ -90,7 +92,7 @@ fn date_format(range: &Range<DateTime<Utc>>, width: u32) -> String {
 	fmt.join("")
 }
 
-pub fn render(data: Vec<Vec<(DateTime<Utc>, f64)>>, date_range: Range<DateTime<Utc>>, w: u32, h: u32) -> Result<Vec<u8>, DrawingAreaErrorKind<impl std::error::Error>> {
+pub fn render(metrics: Vec<Metric>, date_range: Range<DateTime<Utc>>, w: u32, h: u32) -> Result<Vec<u8>, DrawingAreaErrorKind<impl std::error::Error>> {
 	let mut buf = vec![0; (w * h * 3) as usize];
 	{
 		let root = BitMapBackend::with_buffer(&mut buf, (w, h)).into_drawing_area();
@@ -103,15 +105,22 @@ pub fn render(data: Vec<Vec<(DateTime<Utc>, f64)>>, date_range: Range<DateTime<U
 			.set_label_area_size(LabelAreaPosition::Bottom, 30)
 			.build_ranged(
 				date_range,
-				iter_to_range(data.iter().flatten().map(|(_, y)| *y), 0.5, 0. .. 1.),
+				iter_to_range(
+					metrics.iter()
+						.map(|m| m.data.iter())
+						.flatten()
+						.map(|(_, y)| *y),
+					0.5,
+					0. .. 1.,
+				),
 			)?;
 
 		chart.configure_mesh()
 			.x_label_formatter(&|x: &DateTime<Utc>| x.format(&xfmt).to_string())
 			.draw()?;
 
-		for (data, color) in data.into_iter().zip(colors()) {
-			chart.draw_series(LineSeries::new(data, &color))?;
+		for (metric, color) in metrics.into_iter().zip(colors()) {
+			chart.draw_series(LineSeries::new(metric.data, &color))?;
 		}
 	}
 
