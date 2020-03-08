@@ -34,14 +34,15 @@ async fn handle(req: Request<Body>) -> Result<Response<Body>, Error> {
 	let w = params.w.unwrap_or(800);
 	let h = params.h.unwrap_or(480);
 
-	let now = Utc::now();
+	let end = Utc::now();
+	let start = end - Duration::hours(1);
 	let data = prom::fetch(
-		now - Duration::hours(1),
-		now,
+		start,
+		end,
 	).await?;
 	let img = render::render(
 		data,
-		now - Duration::hours(1) .. now,
+		start .. end,
 		w, h,
 	)?;
 
