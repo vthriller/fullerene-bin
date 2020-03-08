@@ -36,15 +36,9 @@ async fn handle(req: Request<Body>) -> Result<Response<Body>, Error> {
 
 	let end = Utc::now();
 	let start = end - Duration::hours(1);
-	let data = prom::fetch(
-		start,
-		end,
-	).await?;
-	let img = render::render(
-		data,
-		start .. end,
-		w, h,
-	)?;
+
+	let data = prom::fetch(start, end).await?;
+	let img = render::render(data, start .. end, w, h)?;
 
 	let mut png = vec![];
 	PNGEncoder::new(&mut png)
