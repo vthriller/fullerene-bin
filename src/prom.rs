@@ -48,11 +48,11 @@ pub struct Metric {
 	pub data: Vec<(DateTime<Utc>, f64)>,
 }
 
-pub async fn fetch(start: DateTime<Utc>, end: DateTime<Utc>, pitch: u32) -> Result<Vec<Metric>, Error> {
+pub async fn fetch(query: &str, start: DateTime<Utc>, end: DateTime<Utc>, pitch: u32) -> Result<Vec<Metric>, Error> {
 	let client = Client::new();
 	let resp = client.get("http://127.0.0.1:9090/api/v1/query_range")
 		.query(&[
-			("query", "sum(rate(node_cpu{instance=\"localhost:9100\"} [5m])) by (mode)"),
+			("query", query),
 			("start", &format!("{}", start.timestamp())),
 			("end", &format!("{}", end.timestamp())),
 			("step", &format!("{}", pitch)),

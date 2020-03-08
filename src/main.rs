@@ -38,7 +38,10 @@ async fn handle(req: Request<Body>) -> Result<Response<Body>, Error> {
 	let start = end - Duration::hours(1);
 	let pitch = (end - start).num_seconds() as u32 / w;
 
-	let data = prom::fetch(start, end, pitch).await?;
+	let data = prom::fetch(
+		"sum(rate(node_cpu{instance=\"localhost:9100\"} [5m])) by (mode)",
+		start, end, pitch,
+	).await?;
 	let img = render::render(data, start .. end, w, h)?;
 
 	let mut png = vec![];
