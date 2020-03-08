@@ -75,14 +75,14 @@ pub async fn fetch(start: DateTime<Utc>, end: DateTime<Utc>) -> Result<Vec<Metri
 		.map(|metric| {
 			Metric {
 				labels: metric.metric,
-			data: metric.values.into_iter()
-				.map(|(k, v)| (
-					// don't care about sub-second precision, sorry
-					Utc.timestamp(k as i64, 0),
-					// XXX unwrap(): we expect valid floats in strings (including "NaN"s)
-					v.parse().unwrap()
-				))
-				.collect()
+				data: metric.values.into_iter()
+					.map(|(k, v)| (
+						// don't care about sub-second precision, sorry
+						Utc.timestamp(k as i64, 0),
+						// XXX unwrap(): we expect valid floats in strings (including "NaN"s)
+						v.parse().unwrap()
+					))
+					.collect()
 			}
 		})
 		.collect())
