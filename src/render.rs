@@ -6,6 +6,7 @@ use std::ops::Range;
 use chrono::prelude::*;
 
 use crate::prom::Metric;
+use std::collections::HashMap;
 
 fn iter_to_range<T, E, I>(elems: I, epsilon: E, empty: Range<T>) -> Range<T>
 where
@@ -92,6 +93,26 @@ fn date_format(range: &Range<DateTime<Utc>>, width: u32) -> String {
 	fmt.join("")
 }
 
+fn render_labels(labels: &HashMap<String, String>) -> String {
+	let mut s = labels.get("__name__")
+		.map(|n| n.clone())
+		.unwrap_or_else(|| "".to_string());
+
+	s += "{";
+
+	for (k, v) in labels {
+		if k == "__name__" { continue }
+		s += k;
+		s += "=\"";
+		s += &v.replace("\"", "\\\"");
+		s += "\"";
+	}
+
+	s += "}";
+
+	s
+}
+
 pub fn render(metrics: Vec<Metric>, date_range: Range<DateTime<Utc>>, w: u32, h: u32) -> Result<Vec<u8>, DrawingAreaErrorKind<impl std::error::Error>> {
 	let mut buf = vec![0; (w * h * 3) as usize];
 	{
@@ -120,8 +141,20 @@ pub fn render(metrics: Vec<Metric>, date_range: Range<DateTime<Utc>>, w: u32, h:
 			.draw()?;
 
 		for (metric, color) in metrics.into_iter().zip(colors()) {
-			chart.draw_series(LineSeries::new(metric.data, &color))?;
+			chart
+				.draw_series(LineSeries::new(metric.data, &color))?
+				.label(render_labels(&metric.labels))
+				.legend(move |(x, y)| {
+					let style = ShapeStyle::from(&color).filled();
+					Rectangle::new([(x - 5, y - 5), (x + 5, y + 5)], style)
+				});
 		}
+
+		chart.configure_series_labels()
+			.position(SeriesLabelPosition::UpperLeft)
+			.background_style(&WHITE.mix(0.8))
+			.border_style(&BLACK)
+			.draw()?;
 	}
 
 	Ok(buf)
