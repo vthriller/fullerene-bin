@@ -51,6 +51,9 @@ async fn handle(req: Request<Body>) -> Result<Response<Body>, Error> {
 	let resp = Response::builder()
 		.status(200)
 		.header("Content-Type", "image/png")
+		.header("Cache-Control", "no-cache, no-store, must-revalidate")
+		.header("Pragma", "no-cache")
+		.header("Expires", "0")
 		.body(Body::from(png))?;
 
 	Ok(resp)
