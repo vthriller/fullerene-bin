@@ -30,17 +30,13 @@ struct PromMetric {
 	values: Vec<(f64, String)>,
 }
 
-quick_error! {
-	#[derive(Debug)]
-	pub enum Error {
-		Fetch(e: reqwest::Error) {
-			display("failed to fetch data: {}", e)
-			from()
-		}
-		Prom(e: String) {
-			display("failed to execute query: {}", e)
-		}
-	}
+
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+	#[error("failed to fetch data: {0}")]
+	Fetch(#[from] reqwest::Error),
+	#[error("failed to execute query: {0}")]
+	Prom(String),
 }
 
 pub struct Metric {
