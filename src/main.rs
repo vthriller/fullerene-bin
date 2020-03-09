@@ -41,7 +41,11 @@ async fn handle(req: Request<Body>) -> Result<Response<Body>, Error> {
 		"sum(rate(node_cpu{instance=\"localhost:9100\"} [5m])) by (mode)",
 		start, end, pitch,
 	).await?;
-	let img = render::render(data, start .. end, w, h)?;
+	let img = render::render(
+		data, start .. end,
+		w, h,
+		Some("{{mode}}"),
+	)?;
 
 	let mut png = vec![];
 	PNGEncoder::new(&mut png)

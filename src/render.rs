@@ -113,7 +113,20 @@ fn render_labels(labels: &HashMap<String, String>) -> String {
 	s
 }
 
-pub fn render(metrics: Vec<Metric>, date_range: Range<DateTime<Utc>>, w: u32, h: u32) -> Result<Vec<u8>, DrawingAreaErrorKind<impl std::error::Error>> {
+#[derive(thiserror::Error, Debug)]
+pub enum Error<E: 'static + std::error::Error + Send + Sync> {
+	#[error("failed to render chart: {0}")]
+	Drawing(#[from] DrawingAreaErrorKind<E>),
+	#[error("invalid label template: {0}")]
+	Template(#[from] tera::Error),
+}
+
+pub fn render(
+	metrics: Vec<Metric>,
+	date_range: Range<DateTime<Utc>>,
+	w: u32, h: u32,
+	tmpl: Option<&str>,
+) -> Result<Vec<u8>, Error<impl std::error::Error>> {
 	let mut buf = vec![0; (w * h * 3) as usize];
 	{
 		let root = BitMapBackend::with_buffer(&mut buf, (w, h)).into_drawing_area();
@@ -141,9 +154,21 @@ pub fn render(metrics: Vec<Metric>, date_range: Range<DateTime<Utc>>, w: u32, h:
 			.draw()?;
 
 		for (metric, color) in metrics.into_iter().zip(colors()) {
+			// decompose: data will be moved before labels will be borrowed into label rendering closure
+			let data = metric.data;
+			let labels = metric.labels;
+
 			chart
-				.draw_series(LineSeries::new(metric.data, &color))?
-				.label(render_labels(&metric.labels))
+				.draw_series(LineSeries::new(data, &color))?
+				.label(tmpl
+					.map(|tmpl| {
+						let mut ctx = tera::Context::new();
+						for (k, v) in &labels {
+							ctx.insert(k, &v);
+						}
+						tera::Tera::one_off(tmpl, &ctx, false)
+					})
+					.unwrap_or_else(|| Ok(render_labels(&labels)))?)
 				.legend(move |(x, y)| {
 					let style = ShapeStyle::from(&color).filled();
 					Rectangle::new([(x - 5, y - 5), (x + 5, y + 5)], style)
